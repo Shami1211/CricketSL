@@ -1,46 +1,41 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
 
 function GetItem() {
-  const [formData, setFormData] = useState({
-    name: "",
-    address: "",
-    phoneNumber: "",
-    studentId: "",
-    quantity: 0,
-  });
+  const location = useLocation();
+  const itemId = new URLSearchParams(location.search).get("id");
+  const [item, setItem] = useState(null);
+  const [quantityNeeded, setQuantityNeeded] = useState(0);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const { quantity } = formData;
-
+  const fetchItem = async (id) => {
     try {
-      const response = await axios.post(
-        "http://localhost:8080/getitems",
-        formData
-      );
-      alert("Added successfully:", response.data);
-
-      setFormData({
-        name: "",
-        address: "",
-        phoneNumber: "",
-        studentId: "",
-        quantity: 0,
-      });
+      const response = await axios.get(`http://localhost:8080/items/${id}`);
+      setItem(response.data.item);
     } catch (error) {
-      console.error("Error sending form data:", error);
+      console.error("Error fetching item:", error);
     }
   };
+
+  useEffect(() => {
+    if (itemId) {
+      fetchItem(itemId);
+    }
+  }, [itemId]);
+
+  const handleQuantityChange = (e) => {
+    const newQuantityNeeded = parseInt(e.target.value);
+    setQuantityNeeded(newQuantityNeeded);
+
+    if (item && newQuantityNeeded >= 0) {
+      const updatedQuantity = Math.max(item.quantity - newQuantityNeeded, 0);
+      setItem({ ...item, quantity: updatedQuantity });
+    }
+  };
+
+  if (!item) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>
@@ -49,80 +44,45 @@ function GetItem() {
           <h1 className="item-topic">
             Get <span className="item-us">Item</span>
           </h1>
-          <form onSubmit={handleSubmit} className="item-full-box-form">
+          {/* Display item details using 'item' state */}
+          <form className="item-full-box-form">
             <div>
-              <label className="item-full-box-label">Item ID</label>
-              <br></br>
-              <input
-                type="text"
-                name="itemit"
-                readOnly
-                className="item-full-box-input"
-              />
               <label className="item-full-box-label">Item Name</label>
-              <br></br>
+              <br />
               <input
                 type="text"
-                readOnly
                 name="itemname"
+                readOnly
                 className="item-full-box-input"
+                value={item.name} // Assuming 'name' is the property for item name
               />
             </div>
-
-            <label className="item-full-box-label">Full Name</label>
-            <br></br>
-            <input
-              type="text"
-              name="name"
-              className="item-full-box-input"
-              value={formData.name}
-              onChange={handleChange}
-            />
-            <br />
-            <label className="item-full-box-label">Address</label>
-            <br></br>
-            <input
-              type="text"
-              name="address"
-              className="item-full-box-input"
-              value={formData.address}
-              onChange={handleChange}
-            />
-            <br />
-            <label className="item-full-box-label">Phone Number</label>
-            <br></br>
-            <input
-              type="text"
-              name="phoneNumber"
-              className="item-full-box-input"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-            />
-            <br />
-            <label className="item-full-box-label">Your Student Id</label>
-            <br></br>
-            <input
-              type="text"
-              name="studentId"
-              className="item-full-box-input"
-              value={formData.studentId}
-              onChange={handleChange}
-            />
-            <br />
-            <label className="item-full-box-label">You Need Quantity</label>
-            <br></br>
-            <input
-              type="number"
-              name="quantity"
-              className="item-full-box-input"
-              value={formData.quantity}
-              onChange={handleChange}
-            />
-            <button type="submit" className="item-add-btn">
-              Submit
-            </button>
+            <div>
+              <label className="item-full-box-label">Quantity</label>
+              <br />
+              <input
+                type="text"
+                name="quantity"
+                readOnly
+                className="item-full-box-input"
+                value={item.quantity} // Assuming 'quantity' is the property for quantity
+              />
+            </div>
+            {/* Add more input fields or elements for other details */}
           </form>
         </div>
+      </div>
+      {/* Input for "How much you want" */}
+      <div>
+        <label className="item-full-box-label">How much you want</label>
+        <br />
+        <input
+          type="number"
+          name="quantityNeeded"
+          className="item-full-box-input"
+          value={quantityNeeded}
+          onChange={handleQuantityChange}
+        />
       </div>
     </div>
   );
