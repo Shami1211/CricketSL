@@ -10,6 +10,13 @@ const app = express();
 dotenv.config(); 
 connectDB();
 
+// Apply CORS middleware
+app.use(cors({
+    origin: 'http://localhost:3000', // Replace with your frontend's origin
+    methods: 'GET, POST, PUT, DELETE',
+    credentials: true
+  }));
+
 app.use(cors());
 app.use(express.json());
 
