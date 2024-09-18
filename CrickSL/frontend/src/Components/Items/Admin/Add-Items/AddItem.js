@@ -124,7 +124,7 @@ function AddRate() {
             />
             <br />
             <label className="item-full-box-label">Image URL</label>
-            <br></br>
+            <br></br>dhtdcj
             <input
               type="text"
               name="imageUrl"
